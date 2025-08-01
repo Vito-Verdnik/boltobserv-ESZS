@@ -22,6 +22,12 @@ global = {
 
 	projectilePos: {},
 	projectileBuffer: {},
+	spectatedHealth: 0,
+	spectatedArmor: 0,
+	bombStatus: "carried",
+	previousState: [0, 0],
+	showDeathRange: false,
+
 
 	/**
 	 * Convert in-game position units to radar percentages
