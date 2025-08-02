@@ -33,11 +33,6 @@ socket.element.addEventListener("players", event => {
 					global.spectatedHealth = player.health;
 				}
 
-				// Only dispatch the event if the bomb is planted
-			/*	if (document.getElementById("bomb").className === "planted") {
-					let event = new Event("spectatedStatsChanged");
-					socket.element.dispatchEvent(event);
-				}*/
 			}
       if (player.flashed > 31) classes.push("flashed")
 

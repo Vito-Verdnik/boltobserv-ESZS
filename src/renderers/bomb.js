@@ -9,8 +9,7 @@ document.getElementById("entities").appendChild(bombCircle)
 if (!global.config.radar.bombCircleSize) {
     global.config.radar.bombCircleSize = 60; // default size in pixels
 }
-//global.config.radar.bombCircleSize = 720; // MIRAGE, NO ARMOR 500   MIRAGE ARMOR 390   760 0 dmg
-// Add CSS styles for the circle
+
 const circleStyle = document.createElement("style")
 circleStyle.textContent = `
 #bomb-circle {
@@ -18,8 +17,7 @@ circleStyle.textContent = `
     position: absolute;
     width: var(--bomb-circle-size);
     height: var(--bomb-circle-size);
-    /*border: 8px dotted red;*/
-    border: 3px solid red;
+    border: 5px dotted red;
     border-radius: 50%;
     transform: translate(-50%, 50%) scale(1);
     pointer-events: none;
@@ -45,15 +43,16 @@ document.head.appendChild(circleStyle)
 // Add lookup tables for different maps at the top level, where lookupMirage is defined
 const lookupTables = {
     mirage: [760, 662, 633, 610, 590, 572, 556, 541, 527, 513, 500, 488, 476, 464, 453, 441, 431, 420, 410, 400, 390],
-    // Add other maps with their lookup values
-    // Example:
-    // dust2: [...],
-    // inferno: [...],
-    // nuke: [...],
-    //nuke_alternate: [] has all the b site values
-    default: [760, 662, 633, 610, 590, 572, 556, 541, 527, 513, 500, 488, 476, 464, 453, 441, 431, 420, 410, 400, 390] // fallback to mirage values
+    nuke: [380, 350, 333, 318, 306, 295, 284, 275, 266, 257, 240, 242, 234, 227, 220, 214, 207, 201, 195, 189, 190],
+    nuke_alternate: [375, 349, 332, 317, 305, 293, 282, 272, 262, 253, 237, 229, 221, 214, 207, 200, 193, 187, 181, 180],
+    inferno: [510, 471, 447, 428, 411, 395, 381, 368, 355, 344, 320, 322, 312, 302, 292, 283, 274, 266, 257, 249, 250],
+    overpass:[510, 474, 452, 433, 416, 401, 387, 375, 362, 351, 327, 330, 320, 310, 301, 292, 283, 275, 267, 257, 260],
+    ancient: [615, 574, 549, 527, 507, 490, 473, 458, 443, 429, 398, 403, 391, 380, 368, 358, 347, 337, 327, 317, 320],
+    dust2: [460, 424, 402, 383, 366, 350, 336, 323, 310, 298, 270, 276, 265, 255, 245, 236, 227, 218, 209, 201, 205],
+    train: [438, 406, 386, 367, 352, 337, 323, 310, 298, 287, 263, 265, 255, 246, 236, 227, 218, 210, 202, 193, 195],
+    default: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
 };
-const lookupMirage = [760, 662, 633, 610, 590, 572, 556, 541, 527, 513, 500, 488, 476, 464, 453, 441, 431, 420, 410, 400, 390]; //A TABLE THAT GOES FROM 0 DMG TO 100 DMG FOR PLAYER WITH ARMOR - it gives you distance
+/*const lookupMirage = [760, 662, 633, 610, 590, 572, 556, 541, 527, 513, 500, 488, 476, 464, 453, 441, 431, 420, 410, 400, 390]; //A TABLE THAT GOES FROM 0 DMG TO 100 DMG FOR PLAYER WITH ARMOR - it gives you distance*/
 // Set the CSS variable for circle size
 document.documentElement.style.setProperty('--bomb-circle-size', global.config.radar.bombCircleSize + 'px');
 
@@ -63,53 +62,6 @@ function updateBombCircleSize(size) {
     document.documentElement.style.setProperty('--bomb-circle-size', size + 'px');
 }
 
-/*
-function calculateDamage(x) {
-    return (6.1052e-7 * Math.pow(x, 3)) - 
-           (0.000298608 * Math.pow(x, 2)) - 
-           (0.553326 * x) + 
-           325;
-}
-
-
-function calculateDistance(damage) {
-    // Set search range (distance in units)
-    let left = 0;
-    let right = 1000; // Assuming maximum reasonable distance
-    const epsilon = 0.1; // Acceptable error margin
-    const maxIterations = 100; // Prevent infinite loops
-    
-    // Target damage value
-    const target = damage;
-    
-    let iterations = 0;
-    while ((right - left) > epsilon && iterations < maxIterations) {
-        const mid = (left + right) / 2;
-        const currentDamage = calculateDamage(mid);
-        
-        if (Math.abs(currentDamage - target) < epsilon) {
-            return mid;
-        }
-        
-        // Since damage decreases with distance, adjust search range accordingly
-        if (currentDamage > target) {
-            left = mid;
-        } else {
-            right = mid;
-        }
-        
-        iterations++;
-    }
-    
-    return (left + right) / 2;
-}
-
-*/
-
-// Add this near the top of bomb.js where other event listeners are defined
-/*socket.element.addEventListener("spectatedStatsChanged", (event) => {
-    updateBombCircleBasedOnHealth();
-});*/
 
 
 socket.element.addEventListener("bomb", event => {
@@ -164,7 +116,8 @@ all that is left to do now is detect if bomb was planted b or a which you can do
     }
 
     if (bomb.state == "planted" || bomb.state == "defusing") {
-        /*let event = new Event("spectatedStatsChanged");*/
+
+
         if(global.showDeathRange && ((global.spectatedHealth !== global.previousState[0]) || (global.spectatedArmor !== global.previousState[1]))){
             bombCircle.classList.remove('hidden');
             updateBombCircleBasedOnHealth();}
@@ -173,7 +126,7 @@ all that is left to do now is detect if bomb was planted b or a which you can do
 
         }
 
-        /*socket.element.dispatchEvent(event);*/
+
         bombElement.className = "planted"
         bombCircle.style.borderColor = "#ff0000"
 
@@ -189,15 +142,7 @@ all that is left to do now is detect if bomb was planted b or a which you can do
 
     }
 })
-//global.spectatedHealth gives me hp
-//global.spectatedArmor gives me armor
-// Loop through damage values from 0 to 100 with step of 5
-/*
-console.log("i am here");
-for (let damage = 0; damage <= 100; damage += 5) {
-    const distance = calculateDistance(damage);
-    console.log(`Damage: ${damage}, Distance: ${distance.toFixed(2)} units`);
-}*/
+
 
 // Update the function
 function updateBombCircleBasedOnHealth() {
@@ -225,23 +170,21 @@ function updateBombCircleBasedOnHealth() {
         let valueUpper = currentLookupTable[Math.ceil((localHealth / 5.0))];
 
         let distance = (valueLower + valueUpper) / 2;
-        /*circleSize = distance;*/
-        /*distance = 190;*/ //USED FOR RANGE FINDING, UNCOMMENT WHEN YOU NEED TO CALCULATE
+
+        /*distance = 615; //USED FOR RANGE FINDING, UNCOMMENT WHEN YOU NEED TO CALCULATE*/
         const container = document.getElementById('container');
         const containerSize = Math.min(container.offsetWidth, container.offsetHeight);
         //My way of fixing window size changing. Because initial calculations were done on the default window size where the container has a width and height of 600px, I use that to get the ratio.
         circleSize = (distance / 600)*containerSize;
-/*        console.log(distance);
-        console.log(containerSize)
-        console.log(circleSize);*/
-        /*console.log(global);*/
-
-        console.log(`distance is ${distance}, health was ${localHealth}, armor was ${global.spectatedArmor}, map is ${mapName}`);
-        console.log(global.alternateSite);
 
         updateBombCircleSize(circleSize);
-       /* updateBombCircleSize(255);*/ //NUKE  BOMB A 100 = 275      325 = 0  50 = 345  0 = 545             BOMB B  0 = 535     50 = 328 100 = 275    291 = 0
-        //THESE ARE WRONG  NUKE A   50 = 240 100 = 190    0 = 380  325 = 0
+
+        //NUKE A   50 = 240 100 = 190    0 = 380  325 = 0                  B 291 = 0         100 = 180    50 = 237       0 = 375
+        //INFERNO 0 = 510  50 = 320   100 = 250 310 = 0
+        //Overpass 0 = 510  50 = 327   100 = 260 325 = 0
+        //Ancient 0 = 615  50 = 398   100 = 320 325 = 0
+        //Dust 0 = 460  50 = 270   100 = 205 250 = 0
+        //Train 0 = 438  50 = 263   100 = 195  250 = 0
 
 
     }

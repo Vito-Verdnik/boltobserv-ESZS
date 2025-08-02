@@ -46,15 +46,6 @@ function executeAction(subject, command) {		// comman is toggle,   subject is wi
 		case "window.mousePassthrough":
 			win.setIgnoreMouseEvents(effects[subject])
 			break
-/*		case "show.DeathRange":
-			socket.send({
-				type: "effect",
-				data: {
-					key: "show.DeathRange",
-					value: effects[subject]
-				}
-			})
-			break*/
 
 	}
 }
