@@ -2,7 +2,8 @@ let bombElement = document.getElementById("bomb")
 let bombStyle = bombElement.style
 let bombCircle = document.createElement("div")
 bombCircle.id = "bomb-circle"
-bombElement.appendChild(bombCircle)
+// Add bombCircle to the entities div instead of bombElement
+document.getElementById("entities").appendChild(bombCircle)
 
 // Set default circle size if not defined in config
 if (!global.config.radar.bombCircleSize) {
@@ -13,20 +14,21 @@ if (!global.config.radar.bombCircleSize) {
 const circleStyle = document.createElement("style")
 circleStyle.textContent = `
 #bomb-circle {
+
     position: absolute;
     width: var(--bomb-circle-size);
     height: var(--bomb-circle-size);
-    border: 8px dotted red;
+    /*border: 8px dotted red;*/
+    border: 3px solid red;
     border-radius: 50%;
-    transform: translate(-50%, -50%);
-    left: 50%;
-    top: 50%;
+    transform: translate(-50%, 50%) scale(1);
     pointer-events: none;
     opacity: 1;
     visibility: visible;
 
     transition: width 0.3s ease-in-out, height 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
+
 
 #bomb-circle.hidden {
     opacity: 0;
@@ -48,6 +50,7 @@ const lookupTables = {
     // dust2: [...],
     // inferno: [...],
     // nuke: [...],
+    //nuke_alternate: [] has all the b site values
     default: [760, 662, 633, 610, 590, 572, 556, 541, 527, 513, 500, 488, 476, 464, 453, 441, 431, 420, 410, 400, 390] // fallback to mirage values
 };
 const lookupMirage = [760, 662, 633, 610, 590, 572, 556, 541, 527, 513, 500, 488, 476, 464, 453, 441, 431, 420, 410, 400, 390]; //A TABLE THAT GOES FROM 0 DMG TO 100 DMG FOR PLAYER WITH ARMOR - it gives you distance
@@ -112,8 +115,8 @@ function calculateDistance(damage) {
 socket.element.addEventListener("bomb", event => {
     let bomb = event.data
     global.bombStatus = bomb.state;
-    console.log(global.showDeathRange);
-    console.log(global.bombStatus);
+/*    console.log(global.showDeathRange);
+    console.log(global.bombStatus);*/
     if (!(bomb.state == "planted" || bomb.state == "defusing")) {
         global.showDeathRange = false;
         bombCircle.classList.add('hidden');
@@ -125,14 +128,44 @@ socket.element.addEventListener("bomb", event => {
     }
     else {
         bombStyle.display = "block"
-        bombStyle.left = global.positionToPerc(bomb.position, "x") + "%"
-        bombStyle.bottom = global.positionToPerc(bomb.position, "y") + "%"
+        let left = global.positionToPerc(bomb.position, "x") + "%";
+        let bottom = global.positionToPerc(bomb.position, "y") + "%"
+        bombStyle.left = left;
+        bombStyle.bottom = bottom
+
+        if((global.currentMap === "de_nuke") && global.showDeathRange){   //ADD HERE OTHE MAPS WITH MULTIPLE SPLITS AFTER TESTING THEM
+            let damageRadius = {};
+           damageRadius.position = {
+                x: bomb.position.x,
+                y: bomb.position.y
+            };
+
+            let left = global.positionToPerc(damageRadius.position, "x") + "%"
+            let bottom = global.positionToPerc(damageRadius.position, "y") + "%"
+            bombCircle.style.left = left;
+            bombCircle.style.bottom = bottom;
+            /*
+all that is left to do now is detect if bomb was planted b or a which you can do if the left and bottom dont match so we know which lookup table to use
+ */
+            if(bombCircle.style.left !== bombStyle.left || bombCircle.style.bottom !== bombStyle.bottom){
+                global.alternateSite = true;
+            } else {
+                global.alternateSite = false;
+            }
+        } else {
+            bombCircle.style.left = left
+            bombCircle.style.bottom = bottom
+
+        }
+
+
+
 
     }
 
     if (bomb.state == "planted" || bomb.state == "defusing") {
         /*let event = new Event("spectatedStatsChanged");*/
-        if(global.showDeathRange && global.spectatedHealth !== global.previousState[0] && global.spectatedArmor !== global.previousState[1]){
+        if(global.showDeathRange && ((global.spectatedHealth !== global.previousState[0]) || (global.spectatedArmor !== global.previousState[1]))){
             bombCircle.classList.remove('hidden');
             updateBombCircleBasedOnHealth();}
         else if (!global.showDeathRange){
@@ -173,7 +206,10 @@ function updateBombCircleBasedOnHealth() {
         let circleSize;
         
         // Get current map name and remove 'de_' prefix
-        const mapName = global.currentMap.replace('de_', '').toLowerCase();
+        let mapName = global.currentMap.replace('de_', '').toLowerCase();
+        if (global.alternateSite) {
+            mapName = mapName + "_alternate"
+        }
         
         // Get the appropriate lookup table for the current map
         const currentLookupTable = lookupTables[mapName] || lookupTables.default;
@@ -189,10 +225,24 @@ function updateBombCircleBasedOnHealth() {
         let valueUpper = currentLookupTable[Math.ceil((localHealth / 5.0))];
 
         let distance = (valueLower + valueUpper) / 2;
-        circleSize = distance;
+        /*circleSize = distance;*/
+        /*distance = 190;*/ //USED FOR RANGE FINDING, UNCOMMENT WHEN YOU NEED TO CALCULATE
+        const container = document.getElementById('container');
+        const containerSize = Math.min(container.offsetWidth, container.offsetHeight);
+        //My way of fixing window size changing. Because initial calculations were done on the default window size where the container has a width and height of 600px, I use that to get the ratio.
+        circleSize = (distance / 600)*containerSize;
+/*        console.log(distance);
+        console.log(containerSize)
+        console.log(circleSize);*/
+        /*console.log(global);*/
 
         console.log(`distance is ${distance}, health was ${localHealth}, armor was ${global.spectatedArmor}, map is ${mapName}`);
+        console.log(global.alternateSite);
 
         updateBombCircleSize(circleSize);
+       /* updateBombCircleSize(255);*/ //NUKE  BOMB A 100 = 275      325 = 0  50 = 345  0 = 545             BOMB B  0 = 535     50 = 328 100 = 275    291 = 0
+        //THESE ARE WRONG  NUKE A   50 = 240 100 = 190    0 = 380  325 = 0
+
+
     }
 }
