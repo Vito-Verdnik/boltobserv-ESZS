@@ -1,7 +1,7 @@
 {
 	"Control+Alt+R": "functions.reload()",
-	"Control+Alt+B": "show.DeathRange->on",
-	"Control+Alt+N": "hide.DeathRange->on",
+	"Alt+B": "show.DeathRange->on",
+	"Alt+N": "hide.DeathRange->on",
 //	"Control+Alt+M": "show.DeathRange->toggle",
 }
 
